@@ -1,0 +1,49 @@
+variables:
+  - group: pipeline-secrets
+  - name: Tenantid
+    value: 
+  - name: AppId
+    value: $(APP-CLIENT-ID)
+...
+...
+
+
+trigger: none
+
+stages:
+- stage: build_dev_environment
+  dependsOn: buildenvironment
+  condition: succeeded('buildenvironment')
+  jobs:
+  - template: templates/tf-plan.yml
+    parameters:
+      env: 'dev'
+      subscription: 'ch01-dev'
+      terraformsa: '$(TFSA)'
+      terraformrg: '$(TFRG)'
+      storagecontainer: '$(StoCont)'
+      terraformurl: '$(TF_URL)'
+      tenantid: '$(TenantId)'
+      applicationid: '$(AppId)'
+      appclientsecret: '$(AppSecret)'
+      subscriptionid: '$(ch01-dev_subscriptionid)'
+      tf_version: '$(tf_version)'
+
+- stage: deploy_dev_environment
+  dependsOn: build_dev_environment
+  condition: succeeded('build_dev_environment')
+  jobs:
+  - template: templates/tf-apply.yml
+    parameters:
+      env: 'dev'
+      devOpsEnvironment:  'CH01-DEV'
+      subscription:  'ch01-dev'
+      terraformsa: '$(TFSA)'
+      terraformrg: '$(TFRG)'
+      storagecontainer: '$(StoCont)'
+      terraformurl: '$(TF_URL)'
+      tenantid: '$(TenantId)'
+      applicationid: '$(AppId)'
+      spclientsecret: '$(AppSecret)'
+      subscriptionid: '$(ch01-dev_subscriptionid)'
+      tf_version: '$(tf_version)'
